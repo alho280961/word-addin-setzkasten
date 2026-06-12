@@ -6,11 +6,17 @@ oder Markierungen **als Markdown exportieren** und rohen Markdown-Text
 Oberfläche dreisprachig (DE / FR / EN, automatische Spracherkennung),
 Design in den ALHO-Farben.
 
+> **Status: produktiv.** Gehostet über GitHub Pages
+> (`https://alho280961.github.io/word-addin-setzkasten`), in Word im Web
+> getestet und unternehmensweit über das Microsoft-365-Admin-Center
+> verteilt (Integrierte Apps). Das Manifest in diesem Repository ist
+> bereits auf die Pages-Adresse konfiguriert.
+
 ## Projektinhalt
 
 ```
 word-addin-setzkasten/
-├── manifest.xml          ← Add-in-Beschreibung für Word (URLs anpassen!)
+├── manifest.xml          ← Add-in-Beschreibung (URLs auf GitHub Pages konfiguriert)
 ├── src/
 │   ├── taskpane.html     ← das komplette Add-in (UI + Konverter)
 │   └── commands.html     ← Pflicht-Hilfsdatei (FunctionFile)
@@ -37,34 +43,37 @@ Das Seitenfenster (Taskpane) bietet drei Bereiche:
 Die Konverter sind aus dem Setzkasten-Editor portiert (gleiche
 Markdown-Syntax inkl. Farb-Spans und Checkboxen).
 
-## Schritt 1: Dateien hosten (HTTPS erforderlich)
+## Hosting (aktueller Stand)
 
-Office lädt Add-ins ausschließlich über HTTPS. Zwei bewährte Wege:
+Die Dateien werden über **GitHub Pages** ausgeliefert
+(Repo-Einstellungen → Pages → Branch `main`, Ordner `/ (root)`):
 
-### Variante A — GitHub Pages (empfohlen, dauerhaft, kostenlos)
-
-1. Diesen Ordner in ein GitHub-Repository hochladen.
-2. In den Repo-Einstellungen **Pages** aktivieren (Branch `main`, Ordner `/`).
-3. Die entstehende Adresse notieren, z. B.
-   `https://DEINNAME.github.io/word-addin-setzkasten`.
-4. In `manifest.xml` **alle** Vorkommen von `https://localhost:3000` durch
-   diese Adresse ersetzen (IconUrl, AppDomain, SourceLocation, Resources).
-
-### Variante B — lokaler Entwicklungsserver (zum schnellen Testen)
-
-```bash
-# Einmalig: vertrauenswürdiges Localhost-Zertifikat installieren
-npx office-addin-dev-certs install
-
-# Im Projektordner starten (Port 3000, HTTPS):
-npx http-server . -p 3000 -S \
-  -C ~/.office-addin-dev-certs/localhost.crt \
-  -K ~/.office-addin-dev-certs/localhost.key
+```
+https://alho280961.github.io/word-addin-setzkasten
 ```
 
-Dann kann das Manifest unverändert bleiben (`https://localhost:3000`).
+Alle URLs in `manifest.xml` zeigen bereits dorthin. **Updates am Add-in**
+(z. B. an `src/taskpane.html`) genügt es, hier im Repo zu committen —
+das Taskpane wird bei jedem Öffnen frisch geladen, ein erneutes Deployment
+ist nur bei Manifest-Änderungen (Name, Icons, Buttons, URLs) nötig.
 
-## Schritt 2: Add-in in Word laden (Sideloading)
+Bei einem Umzug auf einen anderen Host: alle URL-Vorkommen in
+`manifest.xml` ersetzen und das Manifest neu verteilen. Für lokale
+Entwicklung alternativ: `npx office-addin-dev-certs install` und
+`npx http-server . -p 3000 -S -C <crt> -K <key>`, Manifest-URLs auf
+`https://localhost:3000` stellen.
+
+## Verteilung (aktueller Stand: zentral via Microsoft 365)
+
+Das Add-in ist über das **Microsoft-365-Admin-Center** verteilt
+(*Einstellungen → Integrierte Apps → Benutzerdefinierte Apps hochladen* →
+`manifest.xml`). Es erscheint damit automatisch bei allen zugewiesenen
+Nutzern in Word für Windows, Mac und Web — ohne Sideloading.
+Die Erstverteilung kann bis zu 24 Stunden dauern.
+**Manifest-Updates** werden am selben Ort eingespielt (App auswählen →
+Aktualisieren).
+
+## Alternativ: manuelles Sideloading (nur für Tests nötig)
 
 **Word im Browser (einfachster Test):**
 Dokument öffnen → *Start* (bzw. *Einfügen*) → **Add-Ins** →
@@ -83,15 +92,9 @@ Kataloge vertrauenswürdiger Add-Ins* → Pfad einer Netzwerkfreigabe mit der
 (Ordner ggf. anlegen) → Word neu starten →
 *Einfügen → Meine Add-Ins → ⌄ → Setzkasten*.
 
-## Schritt 3 (optional): Verteilung im Unternehmen
-
-Für alle Mitarbeitenden (z. B. bei ALHO): Microsoft-365-Admin-Center →
-*Einstellungen → Integrierte Apps → Benutzerdefinierte Apps hochladen* →
-`manifest.xml`. Das Add-in erscheint dann zentral verwaltet bei allen
-zugewiesenen Nutzern — ohne Store-Veröffentlichung.
-
-Eine Veröffentlichung im öffentlichen **AppSource**-Store ist möglich,
-erfordert aber ein Microsoft-Partnerkonto und den Validierungsprozess.
+Eine Veröffentlichung im öffentlichen **AppSource**-Store wäre zusätzlich
+möglich, erfordert aber ein Microsoft-Partnerkonto und den
+Validierungsprozess — für den internen Einsatz nicht nötig.
 
 ## Bekannte Grenzen (by design)
 

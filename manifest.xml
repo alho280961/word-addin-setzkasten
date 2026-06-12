@@ -13,16 +13,15 @@
   <DisplayName DefaultValue="Setzkasten Markdown"/>
   <Description DefaultValue="Markdown importieren, exportieren und formatiert einfügen — direkt in Word."/>
 
-  <!-- WICHTIG: BASIS-URL ANPASSEN!
-       Ersetze https://localhost:3000 überall durch die HTTPS-Adresse,
-       unter der die Dateien aus diesem Projekt erreichbar sind
-       (z. B. GitHub Pages oder ein Firmenserver). -->
-  <IconUrl DefaultValue="https://localhost:3000/assets/icon-32.png"/>
-  <HighResolutionIconUrl DefaultValue="https://localhost:3000/assets/icon-80.png"/>
-  <SupportUrl DefaultValue="https://localhost:3000"/>
+  <!-- Basis-URL ist konfiguriert für GitHub Pages:
+       https://alho280961.github.io/word-addin-setzkasten
+       Bei einem Umzug (anderer Host/Repo-Name) alle URLs entsprechend ersetzen. -->
+  <IconUrl DefaultValue="https://alho280961.github.io/word-addin-setzkasten/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="https://alho280961.github.io/word-addin-setzkasten/assets/icon-80.png"/>
+  <SupportUrl DefaultValue="https://alho280961.github.io/word-addin-setzkasten"/>
 
   <AppDomains>
-    <AppDomain>https://localhost:3000</AppDomain>
+    <AppDomain>https://alho280961.github.io/word-addin-setzkasten</AppDomain>
   </AppDomains>
 
   <Hosts>
@@ -30,7 +29,7 @@
   </Hosts>
 
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://localhost:3000/src/taskpane.html"/>
+    <SourceLocation DefaultValue="https://alho280961.github.io/word-addin-setzkasten/src/taskpane.html"/>
   </DefaultSettings>
 
   <Permissions>ReadWriteDocument</Permissions>
@@ -73,13 +72,13 @@
     </Hosts>
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16" DefaultValue="https://localhost:3000/assets/icon-16.png"/>
-        <bt:Image id="Icon.32" DefaultValue="https://localhost:3000/assets/icon-32.png"/>
-        <bt:Image id="Icon.80" DefaultValue="https://localhost:3000/assets/icon-80.png"/>
+        <bt:Image id="Icon.16" DefaultValue="https://alho280961.github.io/word-addin-setzkasten/assets/icon-16.png"/>
+        <bt:Image id="Icon.32" DefaultValue="https://alho280961.github.io/word-addin-setzkasten/assets/icon-32.png"/>
+        <bt:Image id="Icon.80" DefaultValue="https://alho280961.github.io/word-addin-setzkasten/assets/icon-80.png"/>
       </bt:Images>
       <bt:Urls>
-        <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:3000/src/taskpane.html"/>
-        <bt:Url id="Commands.Url" DefaultValue="https://localhost:3000/src/commands.html"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://alho280961.github.io/word-addin-setzkasten/src/taskpane.html"/>
+        <bt:Url id="Commands.Url" DefaultValue="https://alho280961.github.io/word-addin-setzkasten/src/commands.html"/>
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Group.Label" DefaultValue="Markdown"/>

@@ -64,6 +64,36 @@
                     <SourceLocation resid="Taskpane.Url"/>
                   </Action>
                 </Control>
+                <Control xsi:type="Button" id="Setzkasten.CopyMdButton">
+                  <Label resid="CopyMd.Label"/>
+                  <Supertip>
+                    <Title resid="CopyMd.Label"/>
+                    <Description resid="CopyMd.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16"/>
+                    <bt:Image size="32" resid="Icon.32"/>
+                    <bt:Image size="80" resid="Icon.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction">
+                    <FunctionName>copySelectionAsMarkdown</FunctionName>
+                  </Action>
+                </Control>
+                <Control xsi:type="Button" id="Setzkasten.PasteMdButton">
+                  <Label resid="PasteMd.Label"/>
+                  <Supertip>
+                    <Title resid="PasteMd.Label"/>
+                    <Description resid="PasteMd.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16"/>
+                    <bt:Image size="32" resid="Icon.32"/>
+                    <bt:Image size="80" resid="Icon.80"/>
+                  </Icon>
+                  <Action xsi:type="ExecuteFunction">
+                    <FunctionName>pasteMarkdownFromClipboard</FunctionName>
+                  </Action>
+                </Control>
               </Group>
             </OfficeTab>
           </ExtensionPoint>
@@ -83,9 +113,13 @@
       <bt:ShortStrings>
         <bt:String id="Group.Label" DefaultValue="Markdown"/>
         <bt:String id="Button.Label" DefaultValue="Setzkasten"/>
+        <bt:String id="CopyMd.Label" DefaultValue="Als Markdown kopieren"/>
+        <bt:String id="PasteMd.Label" DefaultValue="Markdown einfügen"/>
       </bt:ShortStrings>
       <bt:LongStrings>
         <bt:String id="Button.Tooltip" DefaultValue="Markdown importieren, exportieren und formatiert einfügen"/>
+        <bt:String id="CopyMd.Tooltip" DefaultValue="Aktuelle Markierung als Markdown in die Zwischenablage kopieren"/>
+        <bt:String id="PasteMd.Tooltip" DefaultValue="Markdown aus der Zwischenablage formatiert an der Cursorposition einfügen"/>
       </bt:LongStrings>
     </Resources>
   </VersionOverrides>

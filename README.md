@@ -18,8 +18,9 @@ Design in den ALHO-Farben.
 word-addin-setzkasten/
 ├── manifest.xml          ← Add-in-Beschreibung (URLs auf GitHub Pages konfiguriert)
 ├── src/
-│   ├── taskpane.html     ← das komplette Add-in (UI + Konverter)
-│   └── commands.html     ← Pflicht-Hilfsdatei (FunctionFile)
+│   ├── taskpane.html     ← Add-in-Oberfläche (UI + i18n)
+│   ├── converters.js     ← gemeinsame Markdown-Konverter (von beiden genutzt)
+│   └── commands.html     ← Ribbon-Schnellbefehle (FunctionFile)
 ├── assets/
 │   ├── icon-16.png
 │   ├── icon-32.png
@@ -40,8 +41,22 @@ Das Seitenfenster (Taskpane) bietet drei Bereiche:
 3. **Als Markdown exportieren** — Markierung oder ganzes Dokument wird zu
    Markdown konvertiert; Ergebnis kopieren oder als .md herunterladen.
 
-Die Konverter sind aus dem Setzkasten-Editor portiert (gleiche
-Markdown-Syntax inkl. Farb-Spans und Checkboxen).
+**Ribbon-Schnellbefehle** (ohne Umweg übers Taskpane) in der Gruppe
+„Markdown" des Start-Tabs:
+
+- **Als Markdown kopieren** — kopiert die aktuelle Markierung direkt als
+  Markdown in die Zwischenablage.
+- **Markdown einfügen** — fügt Markdown aus der Zwischenablage formatiert
+  an der Cursorposition ein.
+
+**Komfort:** Die gewählte Sprache (DE/FR/EN) wird gemerkt und beim nächsten
+Öffnen wiederhergestellt.
+
+Die Konverter liegen in `src/converters.js` und werden von Taskpane und
+Schnellbefehlen gemeinsam genutzt (gleiche Markdown-Syntax wie der
+Setzkasten-Editor, inkl. Farb-Spans und Checkboxen). Der Word→Markdown-
+Export erkennt auch Word-Desktop-Listen (`MsoListParagraph` mit
+Verschachtelungsebenen) und fortlaufende Nummerierungen.
 
 ## Hosting (aktueller Stand)
 

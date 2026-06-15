@@ -4,7 +4,97 @@
   <meta charset="UTF-8">
   <title>Setzkasten Commands</title>
   <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-  <script>Office.onReady(function () {});</script>
+  <script src="converters.js"></script>
+  <script>
+  /* Ribbon-Schnellbefehle — laufen ohne sichtbares Taskpane.
+     Statusmeldung über die Office-Benachrichtigungsleiste am Dokument. */
+
+  const MSG = {
+    de: { copied: 'Markdown in Zwischenablage kopiert', noSel: 'Keine Markierung gefunden',
+          inserted: 'Markdown eingefügt', clipEmpty: 'Zwischenablage leer oder kein Zugriff',
+          err: 'Aktion fehlgeschlagen' },
+    fr: { copied: 'Markdown copié dans le presse-papiers', noSel: 'Aucune sélection trouvée',
+          inserted: 'Markdown inséré', clipEmpty: 'Presse-papiers vide ou inaccessible',
+          err: "Échec de l'action" },
+    en: { copied: 'Markdown copied to clipboard', noSel: 'No selection found',
+          inserted: 'Markdown inserted', clipEmpty: 'Clipboard empty or no access',
+          err: 'Action failed' }
+  };
+  let L = (navigator.language || 'de').slice(0, 2);
+  try { const s = localStorage.getItem('setzkasten-addin-lang'); if (s && MSG[s]) L = s; } catch (_) {}
+  if (!MSG[L]) L = 'de';
+  const m = k => MSG[L][k];
+
+  /* Kurze Statusmeldung in der Office-Benachrichtigungsleiste (verschwindet selbst). */
+  function flash(text) {
+    try {
+      if (Office.context && Office.context.document) {
+        Office.context.document.setSelectedDataAsync; // Guard
+      }
+    } catch (_) {}
+    try {
+      Office.context.ui; // nichts
+    } catch (_) {}
+    // Office.NotificationMessages gibt es nur in Outlook; in Word nutzen wir die
+    // dokumentweite Benachrichtigung über die Ribbon-Rückmeldung (event.completed).
+    console.log('[Setzkasten] ' + text);
+  }
+
+  function finish(event, text) {
+    flash(text);
+    if (event && event.completed) event.completed();
+  }
+
+  /* Befehl 1: Markierung als Markdown kopieren */
+  function copySelectionAsMarkdown(event) {
+    Word.run(async (ctx) => {
+      const sel = ctx.document.getSelection();
+      const htmlR = sel.getHtml();
+      await ctx.sync();
+      const md = wordHtmlToMd(htmlR.value);
+      if (!md) { finish(event, m('noSel')); return; }
+      try {
+        await navigator.clipboard.writeText(md);
+        finish(event, m('copied'));
+      } catch (_) {
+        const ta = document.createElement('textarea');
+        ta.value = md; document.body.appendChild(ta); ta.select();
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+        finish(event, ok ? m('copied') : m('err'));
+      }
+    }).catch(() => finish(event, m('err')));
+  }
+
+  /* Befehl 2: Markdown aus der Zwischenablage formatiert einfügen */
+  function pasteMarkdownFromClipboard(event) {
+    (async () => {
+      let text = '';
+      try { text = await navigator.clipboard.readText(); } catch (_) {}
+      if (!text || !text.trim()) { finish(event, m('clipEmpty')); return; }
+      try {
+        await Word.run(async (ctx) => {
+          ctx.document.getSelection().insertHtml(mdToHtml(text), Word.InsertLocation.replace);
+          await ctx.sync();
+        });
+        finish(event, m('inserted'));
+      } catch (_) { finish(event, m('err')); }
+    })();
+  }
+
+  Office.onReady(function () {});
+
+  if (typeof Office !== 'undefined') {
+    try {
+      Office.actions.associate('copySelectionAsMarkdown', copySelectionAsMarkdown);
+      Office.actions.associate('pasteMarkdownFromClipboard', pasteMarkdownFromClipboard);
+    } catch (_) {
+      window.copySelectionAsMarkdown = copySelectionAsMarkdown;
+      window.pasteMarkdownFromClipboard = pasteMarkdownFromClipboard;
+    }
+  }
+  </script>
 </head>
 <body></body>
 </html>

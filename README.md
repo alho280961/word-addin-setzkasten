@@ -125,6 +125,7 @@ Validierungsprozess — für den internen Einsatz nicht nötig.
 - `[TOC]`, Fußnoten-Sprungmarken und ```mermaid```-Diagramme aus dem
   Setzkasten-Editor werden beim Import als Text/Codeblock übernommen,
   nicht als aktive Elemente.
+- **Mermaid-Diagramme** werden über die Mermaid-Bibliothek von cdnjs.cloudflare.com gerendert (im Manifest als AppDomain freigegeben). Ohne Internet erscheint statt des Bildes der Diagramm-Quelltext. Einzige externe Abhängigkeit des Add-ins.
 - Das Add-in benötigt Word 2016+ bzw. Microsoft 365 (Office.js,
   WordApi 1.1).
 

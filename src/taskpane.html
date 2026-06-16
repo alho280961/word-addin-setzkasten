@@ -162,7 +162,7 @@ const I18N = {
     okInsert: 'Eingefügt', okImport: 'Datei eingefügt: ', okCopy: 'Markdown kopiert',
     okExport: 'Konvertiert', errEmpty: 'Kein Markdown-Text vorhanden', errSel: 'Keine Markierung gefunden',
     errOffice: 'Word-Aktion fehlgeschlagen: ', errRead: 'Datei konnte nicht gelesen werden',
-    errCopy: 'Kopieren fehlgeschlagen — Text bitte manuell markieren'
+    errCopy: 'Kopieren fehlgeschlagen — Text bitte manuell markieren', tocTitle: 'Inhalt'
   },
   fr: {
     hImport: 'Importer du Markdown', importFile: 'Insérer un fichier .md …',
@@ -176,7 +176,7 @@ const I18N = {
     okInsert: 'Inséré', okImport: 'Fichier inséré : ', okCopy: 'Markdown copié',
     okExport: 'Converti', errEmpty: 'Aucun texte Markdown', errSel: 'Aucune sélection trouvée',
     errOffice: 'Échec de l’action Word : ', errRead: 'Impossible de lire le fichier',
-    errCopy: 'Échec de la copie — veuillez sélectionner le texte manuellement'
+    errCopy: 'Échec de la copie — veuillez sélectionner le texte manuellement', tocTitle: 'Sommaire'
   },
   en: {
     hImport: 'Import Markdown', importFile: 'Insert .md file …',
@@ -190,7 +190,7 @@ const I18N = {
     okInsert: 'Inserted', okImport: 'File inserted: ', okCopy: 'Markdown copied',
     okExport: 'Converted', errEmpty: 'No Markdown text', errSel: 'No selection found',
     errOffice: 'Word action failed: ', errRead: 'Could not read the file',
-    errCopy: 'Copy failed — please select the text manually'
+    errCopy: 'Copy failed — please select the text manually', tocTitle: 'Contents'
   }
 };
 const LANG_KEY = 'setzkasten-addin-lang';
@@ -238,6 +238,88 @@ function status(msg) {
 
 /* Konverter siehe converters.js (vor diesem Script eingebunden) */
 
+/* ════════ Mermaid (CDN-Lazy-Load) & TOC-Aufbereitung ════════ */
+let mermaidLib = null, mermaidSeq = 0;
+function ensureMermaid() {
+  if (window.mermaid) return Promise.resolve(true);
+  if (mermaidLib) return mermaidLib;
+  mermaidLib = new Promise(resolve => {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.9.1/mermaid.min.js';
+    s.onload = () => { try { window.mermaid.initialize({ startOnLoad: false, theme: 'neutral' }); resolve(true); } catch (_) { resolve(false); } };
+    s.onerror = () => { mermaidLib = null; resolve(false); };
+    document.head.appendChild(s);
+  });
+  return mermaidLib;
+}
+function decodeB64(b64) {
+  try { return decodeURIComponent(escape(atob(b64))); } catch (_) { return ''; }
+}
+// SVG (aus mermaid.render) zu PNG-Data-URL rastern
+function svgToPngDataUrl(svg) {
+  return new Promise(resolve => {
+    try {
+      const m = svg.match(/viewBox="[\d.\s]*?([\d.]+)\s+([\d.]+)"/);
+      const w = m ? Math.ceil(+m[1]) : 800, h = m ? Math.ceil(+m[2]) : 600;
+      const scale = 2; // schärfer für Druck
+      const img = new Image();
+      const url = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+      img.onload = () => {
+        const c = document.createElement('canvas');
+        c.width = w * scale; c.height = h * scale;
+        const cx = c.getContext('2d');
+        cx.fillStyle = '#fff'; cx.fillRect(0, 0, c.width, c.height);
+        cx.drawImage(img, 0, 0, c.width, c.height);
+        try { resolve(c.toDataURL('image/png')); } catch (_) { resolve(null); }
+      };
+      img.onerror = () => resolve(null);
+      img.src = url;
+    } catch (_) { resolve(null); }
+  });
+}
+// Platzhalter aus converters.js auflösen: Mermaid→PNG, [TOC]→Linkliste
+async function prepareHtmlForWord(html) {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  // 1) TOC aus den Überschriften des erzeugten HTML aufbauen
+  const tocSlots = doc.querySelectorAll('[data-toc]');
+  if (tocSlots.length) {
+    const hs = [...doc.querySelectorAll('h1,h2,h3,h4,h5,h6')];
+    hs.forEach((h, i) => { if (!h.id) h.id = 'sk-h-' + i; });
+    tocSlots.forEach(slot => {
+      if (!hs.length) { slot.remove(); return; }
+      let inner = '<p style="font-weight:bold">' + t('tocTitle') + '</p>';
+      hs.forEach(h => {
+        const lvl = +h.tagName[1];
+        if (lvl > 3) return;
+        const pad = (lvl - 1) * 18;
+        inner += '<p style="margin:2pt 0 2pt ' + pad + 'pt"><a href="#' + h.id + '">' +
+                 h.textContent + '</a></p>';
+      });
+      slot.innerHTML = inner;
+    });
+  }
+
+  // 2) Mermaid-Blöcke zu PNG rendern (Fallback: vorhandener Code-Block bleibt)
+  const mmd = [...doc.querySelectorAll('[data-mermaid]')];
+  if (mmd.length) {
+    const ok = await ensureMermaid();
+    for (const box of mmd) {
+      const code = decodeB64(box.getAttribute('data-mermaid'));
+      box.removeAttribute('data-mermaid');
+      if (!ok || !code.trim()) continue; // Code-Block bleibt als Fallback
+      try {
+        const res = await window.mermaid.render('mmd' + (mermaidSeq++), code);
+        const png = await svgToPngDataUrl(res.svg);
+        if (png) {
+          box.innerHTML = '<img src="' + png + '" alt="Diagramm" style="max-width:100%">';
+        }
+      } catch (_) { /* Fallback: Code-Block bleibt erhalten */ }
+    }
+  }
+  return doc.body.innerHTML;
+}
+
 /* ════════ Word-Aktionen ════════ */
 function insertHtmlAtSelection(html) {
   return Word.run(async ctx => {
@@ -275,7 +357,7 @@ fileInput.addEventListener('change', () => {
   const reader = new FileReader();
   reader.onload = async () => {
     try {
-      await insertHtmlAtSelection(mdToHtml(reader.result));
+      await insertHtmlAtSelection(await prepareHtmlForWord(mdToHtml(reader.result)));
       status(t('okImport') + f.name);
     } catch (e) { status(t('errOffice') + (e.message || e)); }
   };
@@ -287,7 +369,7 @@ document.getElementById('btnInsert').addEventListener('click', async () => {
   const src = document.getElementById('mdIn').value;
   if (!src.trim()) { status(t('errEmpty')); return; }
   try {
-    await insertHtmlAtSelection(mdToHtml(src));
+    await insertHtmlAtSelection(await prepareHtmlForWord(mdToHtml(src)));
     status(t('okInsert'));
   } catch (e) { status(t('errOffice') + (e.message || e)); }
 });

@@ -6,7 +6,7 @@
            xsi:type="TaskPaneApp">
 
   <Id>5ae13834-be5f-4c23-9667-5170361003ae</Id>
-  <Version>1.0.0</Version>
+  <Version>1.2.0</Version>
   <ProviderName>Setzkasten</ProviderName>
   <DefaultLocale>de-DE</DefaultLocale>
 
@@ -22,6 +22,7 @@
 
   <AppDomains>
     <AppDomain>https://alho280961.github.io/word-addin-setzkasten</AppDomain>
+    <AppDomain>https://cdnjs.cloudflare.com</AppDomain>
   </AppDomains>
 
   <Hosts>

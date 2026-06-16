@@ -25,13 +25,28 @@ function mdToHtml(src) {
   while (i < lines.length) {
     const line = lines[i];
     if (/^```/.test(line)) {
+      const fence = line.slice(3).trim().toLowerCase();
       let buf = []; i++;
       while (i < lines.length && !/^```/.test(lines[i])) { buf.push(lines[i]); i++; }
       i++;
-      html += '<pre style="font-family:Consolas,monospace;background:#f0f1f2;padding:8pt">' +
-              escapeHtml(buf.join('\n')) + '</pre>';
+      if (fence === 'mermaid') {
+        // Platzhalter; das Taskpane ersetzt ihn durch ein gerendertes PNG
+        // (Fallback: Code-Block). Quelltext base64-kodiert mitführen.
+        const code = buf.join('\n');
+        const enc = (typeof btoa === 'function')
+          ? btoa(unescape(encodeURIComponent(code)))
+          : Buffer.from(code, 'utf8').toString('base64');
+        html += '<div data-mermaid="' + enc + '">' +
+                '<pre style="font-family:Consolas,monospace;background:#f0f1f2;padding:8pt">' +
+                escapeHtml(code) + '</pre></div>';
+      } else {
+        html += '<pre style="font-family:Consolas,monospace;background:#f0f1f2;padding:8pt">' +
+                escapeHtml(buf.join('\n')) + '</pre>';
+      }
       continue;
     }
+    // Inhaltsverzeichnis-Platzhalter
+    if (/^\[TOC\]$/i.test(line.trim())) { html += '<div data-toc="1"></div>'; i++; continue; }
     const h = line.match(/^(#{1,6})\s+(.*)/);
     if (h) { const l = h[1].length; html += `<h${l}>${mdInline(h[2])}</h${l}>`; i++; continue; }
     if (/^(\s*)(---+|\*\*\*+|___+)\s*$/.test(line)) { html += '<hr>'; i++; continue; }
@@ -182,6 +197,10 @@ function blockToMd(node, ctx) {
   if (h) return '#'.repeat(+h[1]) + ' ' + inlineToMd(node).trim() + '\n\n';
   switch (tag) {
     case 'P': case 'DIV': {
+      // Word-Inhaltsverzeichnis (TOC-Feld) nicht als Fließtext exportieren.
+      const cls = node.getAttribute('class') || '';
+      const sty0 = styleOf(node);
+      if (/MsoToc/i.test(cls) || /mso-element:\s*toc/i.test(sty0)) return '';
       const li = parseWordListItem(node);
       if (li && li.text) {
         if (!ctx.counters) ctx.counters = {};
